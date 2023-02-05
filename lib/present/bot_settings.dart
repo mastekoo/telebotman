@@ -18,20 +18,10 @@ class _NewRequestState extends State<NewRequest> {
   String _port = '';
   String? baseUrl = dotenv.env['BASE_URL'];
 
-  void _updateHost(String text) {
-    setState(() {
-      _hostController.text = text;
-    });
-  }
-
-  void _updatePort(String text) {
-    setState(() {
-      _portController.text = text;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    _hostController.text = _host;
+    _portController.text = _port;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -63,56 +53,51 @@ class _NewRequestState extends State<NewRequest> {
             style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(Colors.white),
                 foregroundColor: MaterialStateProperty.all(Colors.blueGrey)),
-            onPressed: () async {
-              var value = _tokenController.text;
-              var url = '$baseUrl/bot$value/getWebhookInfo';
-              var response = await http.get(Uri.parse(url));
-              if (response.statusCode == 200) {
-                final parsedJson = json.decode(response.body);
-                final getUrl = parsedJson['result']['url'];
-                int index = getUrl.lastIndexOf(":");
-                String port = getUrl.substring(index + 1);
-                String host = getUrl.substring(0, index);
-                setState(() => {_responseBody = response.body});
-                setState(() {
-                  _host = host.toString();
-                });
-                setState(() {
-                  _port = port.toString();
-                });
-              } else {
-                setState(() => {_responseBody = response.body});
-              }
-            },
+            onPressed: getWebhook,
             child: const Text('getWebhook')),
         ElevatedButton(
             style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(Colors.white),
                 foregroundColor: MaterialStateProperty.all(Colors.blueGrey)),
-            onPressed: () {
-              _updateHost(_host);
-              _updatePort(_port);
-            },
-            child: const Text('paste')),
-        ElevatedButton(
-            style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Colors.white),
-                foregroundColor: MaterialStateProperty.all(Colors.blueGrey)),
-            onPressed: () async {
-              var host = _hostController.text;
-              var token = _tokenController.text;
-              var port = _portController.text;
-              var url = '$baseUrl/bot$token/setWebhook?url=$host:$port';
-              var response = await http.get(Uri.parse(url));
-              if (response.statusCode == 200) {
-                setState(() => {_responseBody = response.body});
-              } else {
-                setState(() => {_responseBody = response.body});
-              }
-            },
+            onPressed: setWebhook,
             child: const Text('setWebhook')),
         Text(_responseBody)
       ],
     );
+  }
+
+  void setWebhook() async {
+    var host = _hostController.text;
+    var token = _tokenController.text;
+    var port = _portController.text;
+    var url = '$baseUrl/bot$token/setWebhook?url=$host:$port';
+    var response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      setState(() => {_responseBody = response.body});
+    } else {
+      setState(() => {_responseBody = response.body});
+    }
+  }
+
+  void getWebhook() async {
+    var value = _tokenController.text;
+    var url = '$baseUrl/bot$value/getWebhookInfo';
+    var response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final parsedJson = json.decode(response.body);
+      final getUrl = parsedJson['result']['url'];
+      int index = getUrl.lastIndexOf(":");
+      String port = getUrl.substring(index + 1);
+      String host = getUrl.substring(0, index);
+      setState(
+        () => {
+          _responseBody = response.body,
+          _host = host.toString(),
+          _port = port.toString()
+        },
+      );
+    } else {
+      setState(() => {_responseBody = response.body});
+    }
   }
 }
