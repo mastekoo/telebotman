@@ -103,7 +103,7 @@ class _NewRequestState extends State<NewRequest> {
                 foregroundColor: MaterialStateProperty.all(Colors.blueGrey)),
             onPressed: () async {
               var value = _tokenController.text;
-              var url = 'https://api.telegram.org/$value/getWebhookInfo';
+              var url = 'https://api.telegram.org/bot$value/getWebhookInfo';
               var response = await http.get(Uri.parse(url));
               if (response.statusCode == 200) {
                 final parsedJson = json.decode(response.body);
@@ -141,7 +141,7 @@ class _NewRequestState extends State<NewRequest> {
               var token = _tokenController.text;
               var port = _portController.text;
               var url =
-                  'https://api.telegram.org/$token/setWebhook?url=$host:$port';
+                  'https://api.telegram.org/bot$token/setWebhook?url=$host:$port';
               var response = await http.get(Uri.parse(url));
               if (response.statusCode == 200) {
                 setState(() => {_responseBody = response.body});
