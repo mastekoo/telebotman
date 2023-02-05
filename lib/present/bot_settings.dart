@@ -17,6 +17,7 @@ class _NewRequestState extends State<NewRequest> {
   String _host = '';
   String _port = '';
   String? baseUrl = dotenv.env['BASE_URL'];
+  String? error;
 
   @override
   Widget build(BuildContext context) {
@@ -72,32 +73,37 @@ class _NewRequestState extends State<NewRequest> {
     var port = _portController.text;
     var url = '$baseUrl/bot$token/setWebhook?url=$host:$port';
     var response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      setState(() => {_responseBody = response.body});
-    } else {
-      setState(() => {_responseBody = response.body});
-    }
+    setState(() => {_responseBody = response.body});
   }
 
   void getWebhook() async {
-    var value = _tokenController.text;
-    var url = '$baseUrl/bot$value/getWebhookInfo';
-    var response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      final parsedJson = json.decode(response.body);
-      final getUrl = parsedJson['result']['url'];
-      int index = getUrl.lastIndexOf(":");
-      String port = getUrl.substring(index + 1);
-      String host = getUrl.substring(0, index);
-      setState(
-        () => {
-          _responseBody = response.body,
-          _host = host.toString(),
-          _port = port.toString()
-        },
-      );
-    } else {
-      setState(() => {_responseBody = response.body});
+    var token = _tokenController.text;
+    var url = '$baseUrl/bot$token/getWebhookInfo';
+    try {
+      var response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final parsedJson = json.decode(response.body);
+        final getUrl = parsedJson['result']['url'];
+        if (getUrl.isEmpty) {
+          throw Error();
+        }
+        int index = getUrl.lastIndexOf(":");
+        String port = getUrl.substring(index + 1);
+        String host = getUrl.substring(0, index);
+        setState(
+          () => {
+            _responseBody = response.body,
+            _host = host.toString(),
+            _port = port.toString()
+          },
+        );
+      } else {
+        setState(() => {_responseBody = response.body});
+      }
+    } catch (e) {
+      setState(() {
+        error = "Error";
+      });
     }
   }
 }
