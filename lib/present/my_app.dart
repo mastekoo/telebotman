@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -55,6 +56,7 @@ class _NewRequestState extends State<NewRequest> {
   String _responseBody = '';
   String _host = '';
   String _port = '';
+  String? baseUrl = dotenv.env['BASE_URL'];
 
   void _updateHost(String text) {
     setState(() {
@@ -103,7 +105,7 @@ class _NewRequestState extends State<NewRequest> {
                 foregroundColor: MaterialStateProperty.all(Colors.blueGrey)),
             onPressed: () async {
               var value = _tokenController.text;
-              var url = 'https://api.telegram.org/bot$value/getWebhookInfo';
+              var url = '$baseUrl/bot$value/getWebhookInfo';
               var response = await http.get(Uri.parse(url));
               if (response.statusCode == 200) {
                 final parsedJson = json.decode(response.body);
@@ -140,8 +142,7 @@ class _NewRequestState extends State<NewRequest> {
               var host = _hostController.text;
               var token = _tokenController.text;
               var port = _portController.text;
-              var url =
-                  'https://api.telegram.org/bot$token/setWebhook?url=$host:$port';
+              var url = '$baseUrl/bot$token/setWebhook?url=$host:$port';
               var response = await http.get(Uri.parse(url));
               if (response.statusCode == 200) {
                 setState(() => {_responseBody = response.body});
